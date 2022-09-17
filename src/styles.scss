@@ -1,0 +1,19 @@
+@import "~bootstrap/scss/bootstrap";
+
+.btn {
+    &.remove {
+        @include button-variant(pink, black);
+    }
+
+    &.add {
+        @include button-variant(green, black);
+    }
+}
+
+.big-list {
+    background-color: aqua;
+
+    .element {
+        background-color: chocolate;
+    }
+}
