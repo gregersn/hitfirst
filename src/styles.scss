@@ -1,5 +1,15 @@
 @import "~bootstrap/scss/bootstrap";
 
+body {
+    background-color: black;
+}
+
+h1,
+h2,
+h3 {
+    color: white;
+}
+
 .btn {
     &.remove {
         @include button-variant(pink, black);
