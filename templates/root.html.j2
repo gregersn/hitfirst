@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    {{request}}
+
+    <form action="/tracker/create" method="POST">
+        {{ forms.create_tracker.csrf_token }}
+        <button type="submit">Create tracker</button>
+    </form>
+</body>
+
+</html>
