@@ -19,7 +19,7 @@ function render_list(listElement, order) {
         el.setAttribute('data-index', index);
         return el;
     });
-    console.log(new_children);
+    console.debug(new_children);
     listElement.replaceChildren(...new_children);
 }
 
@@ -48,6 +48,9 @@ function recieveActions(list, websocket) {
         const event = JSON.parse(data);
 
         switch(event.type) {
+            case "error":
+                document.querySelector(".error").innerHTML = event.message;
+                break;
             case "new_order":
                 console.debug("Got new order", data);
                 render_list(list, event.order);

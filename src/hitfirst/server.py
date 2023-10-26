@@ -1,7 +1,10 @@
 import asyncio
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, Dict, Optional, Set, Tuple
 from websockets.server import serve, WebSocketServerProtocol
+import websockets
+
 import json
 import logging
 import secrets
@@ -19,6 +22,7 @@ class Fight:
     round: Battle
     connected: Set[WebSocketServerProtocol]
     secret: str
+    last_activity: Optional[datetime] = None
 
 
 BATTLES: Dict[str, Fight] = {}
@@ -30,8 +34,9 @@ async def error(websocket: WebSocketServerProtocol, message):
 
 
 async def new_order(connected: Set[WebSocketServerProtocol], battle):
-    for websocket in connected:
-        await websocket.send(json.dumps({"type": "new_order", "order": battle.order}))
+    websockets.broadcast(
+        connected, json.dumps({"type": "new_order", "order": battle.order})
+    )
 
 
 async def player(websocket: WebSocketServerProtocol, game):
@@ -58,7 +63,10 @@ async def gm(
     key: Optional[str] = None,
 ):
     if game is not None and key is not None:
-        fight = BATTLES[game]
+        fight = BATTLES.get(game, None)
+        if fight is None:
+            await error(websocket, f"Game not found: {game}")
+            return
         if fight.secret != key:
             await error(websocket, "You are not the GM of me!")
             return
