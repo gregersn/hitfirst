@@ -6,7 +6,6 @@ import { Combatants } from './combatants';
 import { InitiativeList } from "./initiativelist";
 
 const combatantList = ["Alven", "Ankan", "Draken", "Dvärgen", "Mannen", "Vargen"];
-const websocket = new WebSocket("ws://localhost:8765/");
 
 function new_battle() {
     console.log(window.location.search);
@@ -21,7 +20,20 @@ const Menu = ()  => {
     </div>;
 };
 
-const GM = (game: string|null, secret: string|null) => {
+const GM = (websocket: WebSocket, game: string|null, secret: string|null) => {
+    let responseHandler = websocket.addEventListener("message", ({data}) => {
+        console.log(data);
+
+    });
+    console.log(responseHandler);
+
+    if(game && secret) {
+        const event = { type:"init", join: game, secret: secret};
+        websocket.send(JSON.stringify(event));
+    } else {
+        const event = {type: "init"};
+        websocket.send(JSON.stringify(event));
+    }
 return (<div className="row align-items-start">
         <div className="col">
             <InitiativeList combatants={combatantList} shift={true} />
@@ -31,7 +43,7 @@ return (<div className="row align-items-start">
         </div></div>);
 }
 
-const Player = (game: string|null) => {
+const Player = (websocket: WebSocket, game: string|null) => {
     return (<div>Show the order, and list of combatants?</div>);
 }
 
@@ -40,21 +52,23 @@ enum AppStates {
     Player,
     GM
 }
+const websocket = new WebSocket("ws://localhost:8765/");
 
-const App = (props: {}) => { 
+const App = (props: {}) => {
     const queryParams = new URLSearchParams(window.location.search);
-    const state = queryParams.get("page");
-    const battle = queryParams.get("battle");
-    const secret = queryParams.get("secret");
-    console.log(state);
+    const state_parameter = queryParams.get("page");
+    const battle_parameter = queryParams.get("battle");
+    const secret_parameter = queryParams.get("secret");
+
+    console.log(state_parameter);
 
     let content = <div></div>;
-    switch(state) {
+    switch(state_parameter) {
         case "GM":
-            content = GM(battle, secret);
+            content = GM(websocket, battle_parameter, secret_parameter);
             break;
         case "player":
-            content = Player(battle);
+            content = Player(websocket, battle_parameter);
             break;
         case "menu":
         default:

@@ -1,7 +1,10 @@
+import * as React from 'preact';
+import * as ReactDOM from 'preact';
 
-function sendActions(list, websocket) {
+
+function sendActions(list: HTMLOListElement, websocket: WebSocket) {
     list.addEventListener("click", ({target}) => {
-        const index = target.dataset.index;
+        const index: string = target!.dataset.index;
         if(index === undefined) return;
 
         const event = {
@@ -12,25 +15,31 @@ function sendActions(list, websocket) {
     });
 };
 
-function render_list(listElement, order) {
+function render_list(listElement, order: string[]) {
     const new_children = order.map((info, index) => {
         const el = document.createElement('li');
         el.innerText = info;
-        el.setAttribute('data-index', index);
+        el.setAttribute('data-index', index.toString());
         return el;
     });
     console.debug(new_children);
     listElement.replaceChildren(...new_children);
 }
 
-function initGame(websocket) {
+type JoinEvent = {
+    type: string,
+    battle?: string | null,
+    secret?: string | null
+}
+
+function initGame(websocket: WebSocket) {
     websocket.addEventListener("open", () => {
         const params = new URLSearchParams(window.location.search);
 
-        const event = { type: "init" };
+        const event: JoinEvent = { type: "init" };
 
         if(params.has("battle")) {
-            event.join = params.get("battle");
+            event.battle = params.get("battle");
         }
 
         if(params.has("secret")) {
@@ -43,27 +52,46 @@ function initGame(websocket) {
     });
 }
 
-function recieveActions(list, websocket) {
+let state = 0;
+
+
+function recieveActions(list, websocket: WebSocket) {
     websocket.addEventListener("message", ({ data }) => {
         const event = JSON.parse(data);
 
         switch(event.type) {
             case "error":
-                document.querySelector(".error").innerHTML = event.message;
+                document.querySelector(".error")!.innerHTML = event.message;
                 break;
             case "new_order":
                 console.debug("Got new order", data);
                 render_list(list, event.order);
+                state += 1;
                 break;
             case "init":
                 console.debug(event);
-                document.querySelector(".player").href = "?battle=" + event.join;
-                document.querySelector(".gm").href = "?battle=" + event.join + "&secret=" + event.secret;
+                (document.querySelector(".player")! as HTMLAnchorElement).href = "?battle=" + event.battle;
+                (document.querySelector(".gm")! as HTMLAnchorElement).href = "?battle=" + event.battle + "&secret=" + event.secret;
                 break;
             default:
                 throw new Error(`Unsupported event type: ${event.type}`)
         }
     });
+}
+
+
+function App() {
+    switch(state) {
+        case 1:
+            return <p>Foo</p>
+            break;
+        case 2:
+            return <p>Bar</p>
+            break;
+        default:
+            return <p>Unknown</p>
+            break;
+    }
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -75,5 +103,6 @@ window.addEventListener("DOMContentLoaded", () => {
     sendActions(battleorder, websocket);
     
     console.log("Fight!");
+    ReactDOM.render(<App />, document.getElementById('app')!);
 });
 

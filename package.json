@@ -1,7 +1,13 @@
 {
   "name": "hit-first",
-  "source": "frontend/src/index.html",
+  "source": "src/hitfirst/frontend/index.html",
   "browserslist": "> 0.5%, last  2 versions, not dead",
+  "alias": {
+    "react": "preact/compat",
+    "react-dom/test-utils": "preact/test-utils",
+    "react-dom": "preact/compat",
+    "react/jsx-runtime": "preact/jsx-runtime"
+  },
   "scripts": {
     "start": "parcel",
     "build": "parcel build"
@@ -9,12 +15,19 @@
   "devDependencies": {
     "@parcel/transformer-sass": "^2.10.0",
     "parcel": "^2.10.1",
-    "process": "^0.11.10"
+    "process": "^0.11.10",
+    "@babel/plugin-transform-react-jsx": "^7.9.0"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  }
+    "preact": "^10.18.1"
+    
+  },
+  "plugins": [
+    ["@babel/plugin-transform-react-jsx", {
+      "pragma": "h",
+      "pragmaFrag": "Fragment"
+    }]
+  ]
 }
