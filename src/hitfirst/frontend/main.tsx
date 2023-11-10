@@ -1,8 +1,5 @@
-import * as React from 'preact';
-import * as ReactDOM from 'preact';
-
-
-function sendActions(list: HTMLOListElement, websocket: WebSocket) {
+function sendActions(battleview: HTMLDivElement, websocket: WebSocket) {
+    const list = battleview.getElementsByClassName("roundorder")[0] as HTMLOListElement;
     list.addEventListener("click", ({target}) => {
         const index: string = target!.dataset.index;
         if(index === undefined) return;
@@ -15,7 +12,8 @@ function sendActions(list: HTMLOListElement, websocket: WebSocket) {
     });
 };
 
-function render_list(listElement, order: string[]) {
+function render_list(listElement: HTMLOListElement, order: string[]) {
+    listElement.hidden = false;
     const new_children = order.map((info, index) => {
         const el = document.createElement('li');
         el.innerText = info;
@@ -35,7 +33,6 @@ type JoinEvent = {
 function initGame(websocket: WebSocket) {
     websocket.addEventListener("open", () => {
         const params = new URLSearchParams(window.location.search);
-
         const event: JoinEvent = { type: "init" };
 
         if(params.has("battle")) {
@@ -55,21 +52,36 @@ function initGame(websocket: WebSocket) {
 let state = 0;
 
 
-function recieveActions(list, websocket: WebSocket) {
+function recieveActions(battleview: HTMLDivElement, websocket: WebSocket) {
+    const roundorder = battleview.getElementsByClassName("roundorder")[0] as HTMLOListElement;
+    const battleorder = battleview.getElementsByClassName("battleorder")[0] as HTMLOListElement;
+
     websocket.addEventListener("message", ({ data }) => {
         const event = JSON.parse(data);
 
         switch(event.type) {
             case "error":
+                console.error("Error event");
+                console.error(event);
                 document.querySelector(".error")!.innerHTML = event.message;
                 break;
             case "new_order":
                 console.debug("Got new order", data);
-                render_list(list, event.order);
+                if(event.order_type == "round")
+                    render_list(roundorder, event.order);   
+            
+                if(event.order_type == "battle")
+                    render_list(battleorder, event.order);
                 state += 1;
                 break;
             case "init":
+                console.debug("Init event");
                 console.debug(event);
+                const xurl: URL = (new URL(window.location.toString()));
+                
+                xurl.searchParams.set('battle', event.battle);
+                xurl.searchParams.set('secret', event.secret);
+                window.history.replaceState({}, "", xurl.toString());
                 (document.querySelector(".player")! as HTMLAnchorElement).href = "?battle=" + event.battle;
                 (document.querySelector(".gm")! as HTMLAnchorElement).href = "?battle=" + event.battle + "&secret=" + event.secret;
                 break;
@@ -80,29 +92,14 @@ function recieveActions(list, websocket: WebSocket) {
 }
 
 
-function App() {
-    switch(state) {
-        case 1:
-            return <p>Foo</p>
-            break;
-        case 2:
-            return <p>Bar</p>
-            break;
-        default:
-            return <p>Unknown</p>
-            break;
-    }
-}
-
 window.addEventListener("DOMContentLoaded", () => {
-    const battleorder = document.querySelector(".battleorder");
+    const battleview = document.querySelector(".battleview") as HTMLDivElement;
     const websocket = new WebSocket("ws://localhost:8765/");
     
     initGame(websocket);
-    recieveActions(battleorder, websocket);
-    sendActions(battleorder, websocket);
+    recieveActions(battleview, websocket);
+    sendActions(battleview, websocket);
     
     console.log("Fight!");
-    ReactDOM.render(<App />, document.getElementById('app')!);
 });
 
