@@ -1,3 +1,4 @@
+"""Battle order."""
 from dataclasses import dataclass
 import random
 from typing import Any, List
@@ -6,12 +7,16 @@ from collections.abc import MutableSequence
 
 @dataclass
 class Combatant:
+    """A battle combatant."""
+
     name: str
     actions: int = 1
 
 
 @dataclass
 class RoundEntry:
+    """An action in a round."""
+
     combatant: Combatant
     done: bool = False
 
@@ -31,6 +36,8 @@ def shift(entries: MutableSequence[Any], fighter_at: int, to_position: int):
 
 
 class Round(MutableSequence):
+    """One round of combat."""
+
     _combatants: List[RoundEntry]
 
     def __init__(self, combatants: List[RoundEntry], shuffle: bool = False):
@@ -43,8 +50,9 @@ class Round(MutableSequence):
         self._combatants[fighter_at].done = True
 
     @property
-    def order(self, all: bool = False):
-        return [c.combatant.name for c in self._combatants if all or not c.done]
+    def order(self, everyone: bool = False):
+        """Get round order."""
+        return [c.combatant.name for c in self._combatants if everyone or not c.done]
 
     def __delitem__(self, pos: int):
         return self._combatants.pop(pos)
@@ -58,11 +66,13 @@ class Round(MutableSequence):
     def __setitem__(self, pos: int, obj: Any):
         self._combatants[pos] = obj
 
-    def insert(self, pos: int, obj: Any):
-        self._combatants.insert(pos, obj)
+    def insert(self, index: int, value: Any):
+        self._combatants.insert(index, value)
 
 
 class Battle(MutableSequence):
+    """A battle."""
+
     _combatants: List[Combatant]
     _round: Round
 
@@ -73,23 +83,27 @@ class Battle(MutableSequence):
 
     @property
     def order(self):
+        """Battle order."""
         return [c.name for c in self._combatants]
 
     @property
     def length(self):
+        """Number of combatants in battle."""
         return len(self._combatants)
 
     @property
     def combatants(self):
+        """Combat combatantas."""
         return [c.name for c in self._combatants]
 
     def new_round(self, shuffle: bool = False):
+        """Start a new round."""
         self._round = Round([RoundEntry(c) for c in self._combatants], shuffle=shuffle)
         return self._round
 
-    def remove(self, fighter_at: int):
+    def remove(self, value: int):
         """Remove combatant."""
-        self._combatants.pop(fighter_at)
+        self._combatants.pop(value)
 
     def add(self, combatant: str | Combatant):
         """Add combatant."""
@@ -99,17 +113,17 @@ class Battle(MutableSequence):
 
         self._combatants.append(combatant)
 
-    def __delitem__(self):
+    def __delitem__(self, index: int):
         raise NotImplementedError
 
-    def __getitem__(self):
+    def __getitem__(self, index: int):
         raise NotImplementedError
 
     def __len__(self):
         raise NotImplementedError
 
-    def __setitem__(self):
+    def __setitem__(self, index: int, value: Any):
         raise NotImplementedError
 
-    def insert(self):
+    def insert(self, index: int, value: Any):
         raise NotImplementedError
