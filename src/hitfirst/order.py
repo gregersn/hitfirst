@@ -52,13 +52,9 @@ class Round(MutableSequence):
         self._combatants[fighter_at].done = True
 
     @property
-    def order(self, everyone: bool = False):
+    def order(self):
         """Get round order."""
-        return [
-            {"name": c.combatant.name, "done": c.done}
-            for c in self._combatants
-            if everyone or not c.done
-        ]
+        return [{"name": c.combatant.name, "done": c.done} for c in self._combatants]
 
     def __delitem__(self, pos: int):
         return self._combatants.pop(pos)
@@ -67,7 +63,7 @@ class Round(MutableSequence):
         return self._combatants[pos]
 
     def __len__(self):
-        raise NotImplementedError
+        return len(self._combatants)
 
     def __setitem__(self, pos: int, obj: Any):
         self._combatants[pos] = obj
@@ -102,6 +98,7 @@ class Battle(MutableSequence):
 
     @property
     def round(self):
+        """Get the round"""
         return self._round
 
     @property
@@ -116,9 +113,12 @@ class Battle(MutableSequence):
 
     def new_round(self, shuffle: bool = False):
         """Start a new round."""
-        self._round = Round(
-            [RoundEntry(c) for c in self._combatants if c.active], shuffle=shuffle
-        )
+        round_entries: List[RoundEntry] = []
+        for c in self._combatants:
+            if c.active:
+                for _ in range(c.actions):
+                    round_entries.append(RoundEntry(c))
+        self._round = Round(round_entries, shuffle=shuffle)
         return self._round
 
     def remove(self, value: int):
@@ -132,6 +132,10 @@ class Battle(MutableSequence):
             combatant = Combatant(combatant)
 
         self._combatants.append(combatant)
+
+    def damage(self, index: int, value: int = 1):
+        """Add damage to combatant."""
+        self._combatants[index].damage += value
 
     def __delitem__(self, index: int):
         raise NotImplementedError
