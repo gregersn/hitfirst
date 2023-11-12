@@ -2,6 +2,14 @@
 from hitfirst.order import Battle, swap, shift
 
 
+def test_combat():
+    """Test the basics of combat."""
+
+    battle = Battle(["a", "b", "c", "d"])
+
+    assert len(battle) == 4
+
+
 def test_swap():
     """Test swapping combatants in a round."""
     battle = Battle(["a", "b", "c"])

@@ -9,7 +9,7 @@ import json
 import logging
 import secrets
 
-from order import Battle
+from order import Battle, Round
 
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
@@ -19,7 +19,7 @@ JOIN = {}
 @dataclass
 class Fight:
     battle: Battle
-    round: Battle
+    round: Round
     connected: Set[WebSocketServerProtocol]
     secret: str
     last_activity: Optional[datetime] = None
@@ -107,10 +107,12 @@ async def gm(
             if data["type"] == "click":
                 logging.debug(message)
                 index = data["index"]
-                fight.round.remove(index)
-                if fight.round.length < 1:
-                    fight.round = fight.battle.new_round(shuffle=True)
-                await new_order(fight.connected, fight.round)
+                if data["list"] == "round":
+                    fight.round.flip(index)
+                    await new_order(fight.connected, fight.round)
+                elif data["list"] == "battle":
+                    fight.battle.remove(index)
+                    # await new_order(fight.connected, fight.battle)
     finally:
         # TODO: Set a timestamp, and cleanup after a while instead.
         logging.debug("GM disconnected from %s", id(fight.battle))

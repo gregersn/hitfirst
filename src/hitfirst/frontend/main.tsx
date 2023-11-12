@@ -1,27 +1,69 @@
 function sendActions(battleview: HTMLDivElement, websocket: WebSocket) {
-    const list = battleview.getElementsByClassName("roundorder")[0] as HTMLOListElement;
-    list.addEventListener("click", ({target}) => {
+    const roundlist = battleview.getElementsByClassName("roundorder")[0] as HTMLOListElement;
+    roundlist.addEventListener("click", ({target}) => {
         const index: string = target!.dataset.index;
         if(index === undefined) return;
 
         const event = {
             type: "click",
+            list: "round",
             index: parseInt(index, 10)
         };
         websocket.send(JSON.stringify(event));
     });
+
+    const battlelist = battleview.getElementsByClassName("battleorder")[0] as HTMLOListElement;
+    battlelist.addEventListener("click", ({target}) => {
+        const index: string = target!.dataset.index;
+        if(index === undefined) return;
+
+        const event = {
+            type: "click",
+            list: "battle",
+            index: parseInt(index, 10)
+        };
+        websocket.send(JSON.stringify(event));
+    });
+
 };
 
-function render_list(listElement: HTMLOListElement, order: string[]) {
+type BattleEntry = {
+    'name': string
+};
+
+type RoundEntry = {
+    'name': string,
+    'done': boolean
+};
+
+
+
+function render_list(listElement: HTMLOListElement, order: BattleEntry[]|RoundEntry[], entry_cb) {
     listElement.hidden = false;
-    const new_children = order.map((info, index) => {
+    const new_children = order.map((info, index: number) => {
         const el = document.createElement('li');
-        el.innerText = info;
+        el.appendChild(entry_cb(info));
         el.setAttribute('data-index', index.toString());
         return el;
     });
     console.debug(new_children);
     listElement.replaceChildren(...new_children);
+}
+
+function render_round_order(listElement: HTMLOListElement, order: RoundEntry[]) {
+    render_list(listElement, order, (round_entry: RoundEntry) => {
+        const entry = document.createElement('span');
+        entry.innerHTML = round_entry.name;
+        return entry;
+    });
+}
+
+function render_battle_order(listElement: HTMLOListElement, order: BattleEntry[]) {
+    render_list(listElement, order, (battle_entry: BattleEntry) => {
+        const entry = document.createElement('span');
+        entry.innerHTML = battle_entry.name;
+        return entry;
+    });    
 }
 
 type JoinEvent = {
@@ -68,10 +110,10 @@ function recieveActions(battleview: HTMLDivElement, websocket: WebSocket) {
             case "new_order":
                 console.debug("Got new order", data);
                 if(event.order_type == "round")
-                    render_list(roundorder, event.order);   
+                    render_round_order(roundorder, event.order);   
             
                 if(event.order_type == "battle")
-                    render_list(battleorder, event.order);
+                    render_battle_order(battleorder, event.order);
                 state += 1;
                 break;
             case "init":

@@ -1,8 +1,8 @@
 """Battle order."""
-from dataclasses import dataclass
 import random
-from typing import Any, List
 from collections.abc import MutableSequence
+from dataclasses import dataclass
+from typing import Any, List
 
 
 @dataclass
@@ -11,6 +11,8 @@ class Combatant:
 
     name: str
     actions: int = 1
+    damage: int = 0
+    active: bool = True
 
 
 @dataclass
@@ -52,7 +54,11 @@ class Round(MutableSequence):
     @property
     def order(self, everyone: bool = False):
         """Get round order."""
-        return [c.combatant.name for c in self._combatants if everyone or not c.done]
+        return [
+            {"name": c.combatant.name, "done": c.done}
+            for c in self._combatants
+            if everyone or not c.done
+        ]
 
     def __delitem__(self, pos: int):
         return self._combatants.pop(pos)
@@ -84,7 +90,19 @@ class Battle(MutableSequence):
     @property
     def order(self):
         """Battle order."""
-        return [c.name for c in self._combatants]
+        return [
+            {
+                "name": c.name,
+                "actions": c.actions,
+                "active": c.active,
+                "damage": c.damage,
+            }
+            for c in self._combatants
+        ]
+
+    @property
+    def round(self):
+        return self._round
 
     @property
     def length(self):
@@ -98,7 +116,9 @@ class Battle(MutableSequence):
 
     def new_round(self, shuffle: bool = False):
         """Start a new round."""
-        self._round = Round([RoundEntry(c) for c in self._combatants], shuffle=shuffle)
+        self._round = Round(
+            [RoundEntry(c) for c in self._combatants if c.active], shuffle=shuffle
+        )
         return self._round
 
     def remove(self, value: int):
@@ -120,7 +140,7 @@ class Battle(MutableSequence):
         raise NotImplementedError
 
     def __len__(self):
-        raise NotImplementedError
+        return sum([c.actions for c in self._combatants if c.active])
 
     def __setitem__(self, index: int, value: Any):
         raise NotImplementedError
