@@ -1,15 +1,17 @@
+"""Websocket server."""
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, Literal, Optional, Set, Tuple
-from websockets.server import serve, WebSocketServerProtocol
-import websockets
+from typing import Any, Dict, Literal, Optional, Set
 
 import json
 import logging
 import secrets
 
-from order import Battle, Round
+from websockets.server import serve, WebSocketServerProtocol
+import websockets
+
+from .order import Battle, Round
 
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
@@ -18,6 +20,8 @@ JOIN = {}
 
 @dataclass
 class Fight:
+    """Represent a fight on the server."""
+
     battle: Battle
     round: Round
     connected: Set[WebSocketServerProtocol]
@@ -28,16 +32,42 @@ class Fight:
 BATTLES: Dict[str, Fight] = {}
 
 
-async def error(websocket: WebSocketServerProtocol, message):
+@dataclass
+class InitMessage:
+    """Init message."""
+
+    type: Literal["init"]
+    battle: Optional[str] = None
+    secret: Optional[str] = None
+
+
+@dataclass
+class CommandMessage:
+    """Battle message."""
+
+    type: Literal["command"]
+    command: Literal["click", "new_round"]
+    params: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ClickParams:
+    list: Literal["round", "battle"]
+    index: int
+
+
+async def error(websocket: WebSocketServerProtocol, message: str):
+    """Send error message to player."""
     event = {"type": "error", "message": message}
     await websocket.send(json.dumps(event))
 
 
 async def new_order(
     connected: Set[WebSocketServerProtocol],
-    battle,
+    battle: Battle | Round,
     order_type: Literal["round", "battle"] = "round",
 ):
+    """Broadcast new order of combatants."""
     websockets.broadcast(
         connected,
         json.dumps(
@@ -46,7 +76,8 @@ async def new_order(
     )
 
 
-async def player(websocket: WebSocketServerProtocol, game):
+async def player(websocket: WebSocketServerProtocol, game: str):
+    """Player connected."""
     try:
         fight = BATTLES[game]
     except KeyError:
@@ -56,7 +87,7 @@ async def player(websocket: WebSocketServerProtocol, game):
     fight.connected.add(websocket)
     try:
         logging.debug("Player joined battle: %s", id(fight.battle))
-        await new_order({websocket}, fight.round)
+        await new_order({websocket}, fight.round, "round")
         async for message in websocket:
             logging.debug("Player sent: %s", message)
 
@@ -69,6 +100,7 @@ async def gm(
     game: Optional[str] = None,
     key: Optional[str] = None,
 ):
+    """GM connected."""
     if game is not None and key is not None:
         # Try to find fight
         fight = BATTLES.get(game, None)
@@ -98,21 +130,28 @@ async def gm(
         await new_order({websocket}, fight.battle, "battle")
 
         logging.debug("GM started battle: %s", id(fight.battle))
-        await new_order(fight.connected, fight.round)
+        await new_order(fight.connected, fight.round, "round")
 
         async for message in websocket:
             logging.debug("GM sent: %s", message)
 
-            data = json.loads(message)
-            if data["type"] == "click":
+            data = CommandMessage(**json.loads(message))
+            if data.type == "command":
                 logging.debug(message)
-                index = data["index"]
-                if data["list"] == "round":
-                    fight.round.flip(index)
-                    await new_order(fight.connected, fight.round)
-                elif data["list"] == "battle":
-                    fight.battle.remove(index)
-                    # await new_order(fight.connected, fight.battle)
+                match data.command:
+                    case "click":
+                        params = ClickParams(**data.params)
+                        if params.list == "round":
+                            logging.debug("Flipping player in round: %s", params.index)
+                            fight.round.flip(params.index)
+                            await new_order(fight.connected, fight.round, "round")
+                        elif params.list == "battle":
+                            logging.debug("Removing from battle: %s", params.index)
+                            del fight.battle[params.index]
+                            await new_order(fight.connected, fight.battle, "battle")
+                    case "new_round":
+                        fight.round = fight.battle.new_round(shuffle=True)
+                        await new_order(fight.connected, fight.round, "round")
     finally:
         # TODO: Set a timestamp, and cleanup after a while instead.
         logging.debug("GM disconnected from %s", id(fight.battle))
@@ -121,26 +160,30 @@ async def gm(
 
 
 async def handler(websocket: WebSocketServerProtocol):
+    """Incoming message handler."""
     message = await websocket.recv()
-    event = json.loads(message)
+    event = InitMessage(**json.loads(message))
 
-    assert event["type"] == "init"
+    assert event.type == "init"
 
-    if "battle" in event:
+    if event.battle:
         logging.debug("Someone wants to join: %s", message)
-        if "secret" in event:
+        if event.secret:
             logging.debug("GM is coming back")
-            await gm(websocket, event["battle"], event["secret"])
+            await gm(websocket, event.battle, event.secret)
         else:
-            await player(websocket, event["battle"])
+            await player(websocket, event.battle)
     else:
         logging.debug("GM is starting a game: %s", message)
         await gm(websocket)
 
 
 async def main():
+    """Main."""
     async with serve(handler, "localhost", 8765):
         await asyncio.Future()  # Run forever!
 
 
-asyncio.run(main())
+def run():
+    """Run."""
+    asyncio.run(main())

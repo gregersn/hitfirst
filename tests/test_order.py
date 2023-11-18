@@ -11,7 +11,7 @@ def test_combat():
     battle = Battle(["a", Combatant("b", actions=2), "c", "d"])
     assert len(battle) == 5
 
-    battle.remove(0)
+    del battle[0]
     assert len(battle) == 4
 
     assert battle.order == [
@@ -23,6 +23,16 @@ def test_combat():
     battle.damage(1, 3)
 
     assert battle.order[1] == {"name": "c", "actions": 1, "active": True, "damage": 3}
+
+    battle.add("foo")
+
+    shift(battle, 3, 0)
+    assert battle.order[0] == {"name": "foo", "actions": 1, "active": True, "damage": 0}
+    assert len(battle) == 5
+
+    swap(battle, 0, 3)
+    assert battle.order[0]["name"] == "d"
+    assert battle.order[3]["name"] == "foo"
 
 
 def test_round():
@@ -36,7 +46,7 @@ def test_round():
     battle_round = battle.new_round()
     assert len(battle_round) == 5
 
-    battle.remove(0)
+    del battle[0]
     battle_round = battle.new_round()
     assert len(battle_round) == 4
 
@@ -100,13 +110,13 @@ def test_remove():
     """Test removing from battle."""
     battle = Battle(["a", "b", "c"])
 
-    battle.remove(1)
+    del battle[1]
     assert battle.combatants == ["a", "c"]
 
-    battle.remove(0)
+    del battle[0]
     assert battle.combatants == ["c"]
 
-    battle.remove(0)
+    del battle[0]
     assert battle.combatants == []
 
 

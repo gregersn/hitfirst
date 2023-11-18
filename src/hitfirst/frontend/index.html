@@ -5,14 +5,19 @@
     <meta charset="utf-8" />
     <title>Hit first!</title>
     <!-- <link rel="stylesheet" href="styles.scss" />--->
+    <link rel="stylesheet" href="styles.scss" />
+
 </head>
   <body>
     <div id="app"></div>
     <div class="error"></div>
     <div class="battleview">
+      <h3>Round</h3>
       <ol class="roundorder" hidden="true">
         <li>No contender</li>
       </ol>
+      <button id="btnNewRound" class="btnNewRound">New round</button>
+      <h3>Battle</h3>
       <ol class="battleorder" hidden="true">
         <li>No contender</li>
       </ol>
@@ -22,6 +27,6 @@
       <a class="action gm" href="">GM link</a><br />
       <a class="action new" href="index.html">New battle</a>
     </div>
-    <script src="main.tsx" type="module"></script>
+    <script src="main.ts" type="module"></script>
   </body>
 </html>

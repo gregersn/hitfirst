@@ -1,2 +1,20 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hitfirst"
+version = "0.0.1"
+dependencies = ["websockets"]
+
+[project.scripts]
+hitfirst = "hitfirst.server:run"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]   # ["*"] by default
+exclude = []      # empty by default
+namespaces = true # true by default
+
 [tool.pytest.ini_options]
-pythonpath="src"
+pythonpath = "src"
