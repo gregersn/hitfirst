@@ -9,7 +9,7 @@
     "react/jsx-runtime": "preact/jsx-runtime"
   },
   "scripts": {
-    "start": "parcel",
+    "start": "parcel serve",
     "build": "parcel build"
   },
   "devDependencies": {

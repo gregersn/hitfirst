@@ -11,7 +11,7 @@ import secrets
 from websockets.server import serve, WebSocketServerProtocol
 import websockets
 
-from .order import Battle, Round
+from .order import Battle, Combatant, Round
 
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
 
@@ -46,7 +46,7 @@ class CommandMessage:
     """Battle message."""
 
     type: Literal["command"]
-    command: Literal["click", "new_round"]
+    command: Literal["click", "new_round", "add_combatant"]
     params: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -54,6 +54,12 @@ class CommandMessage:
 class ClickParams:
     list: Literal["round", "battle"]
     index: int
+
+
+@dataclass
+class NewCombatantParams:
+    name: str
+    actions: int = 1
 
 
 async def error(websocket: WebSocketServerProtocol, message: str):
@@ -152,6 +158,14 @@ async def gm(
                     case "new_round":
                         fight.round = fight.battle.new_round(shuffle=True)
                         await new_order(fight.connected, fight.round, "round")
+                    case "add_combatant":
+                        logging.debug("Got new combatant")
+                        logging.debug(data.params)
+                        params = NewCombatantParams(**data.params)
+                        fight.battle.add(
+                            Combatant(name=params.name, actions=params.actions)
+                        )
+                        await new_order(fight.connected, fight.battle, "battle")
     finally:
         # TODO: Set a timestamp, and cleanup after a while instead.
         logging.debug("GM disconnected from %s", id(fight.battle))

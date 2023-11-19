@@ -14,6 +14,15 @@ type NewRoundMessage = {
   command: "new_round";
 };
 
+type AddCombatantMessage = {
+  type:"command";
+  command: "add_combatant";
+  params: {
+    name: string;
+    actions: number;
+  }
+}
+
 function sendActions(battleview: HTMLDivElement, websocket: WebSocket) {
   // 'New round' button
   const newRound = battleview.getElementsByClassName(
@@ -26,6 +35,22 @@ function sendActions(battleview: HTMLDivElement, websocket: WebSocket) {
     };
     websocket.send(JSON.stringify(event));
   });
+
+
+    // Adding combatant
+  const addCombatant = battleview.getElementsByClassName("btnAddCombatant")[0] as HTMLButtonElement;
+  const combatantName = battleview.getElementsByClassName("combatantInput")[0] as HTMLInputElement;
+  const combatantActions = battleview.getElementsByClassName("combatantActions")[0] as HTMLInputElement;
+  addCombatant.addEventListener("click", () => {
+    const event: AddCombatantMessage = {
+      type: "command",
+      command: "add_combatant",
+      params: {name: combatantName.value,
+      actions: Number.parseInt(combatantActions.value)}
+    };
+    websocket.send(JSON.stringify(event));
+  });
+
 
   // Clicking on round entries
   const roundlist = battleview.getElementsByClassName(
@@ -64,10 +89,12 @@ function sendActions(battleview: HTMLDivElement, websocket: WebSocket) {
     };
     websocket.send(JSON.stringify(event));
   });
+
 }
 
 type BattleEntry = {
   name: string;
+  actions: number;
 };
 
 type RoundEntry = {
@@ -111,7 +138,7 @@ function render_battle_order(
 ) {
   render_list(listElement, order, (battle_entry: BattleEntry) => {
     const entry = document.createElement("span");
-    entry.innerHTML = battle_entry.name;
+    entry.innerHTML = `${battle_entry.name} (${battle_entry.actions})`;
     return entry;
   });
 }
