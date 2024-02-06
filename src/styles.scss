@@ -15,6 +15,12 @@ h3 {
         @include button-variant(pink, black);
     }
 
+    &.swap {
+        @include button-variant(pink, black);
+    }
+    
+
+
     &.add {
         @include button-variant(green, black);
     }
@@ -24,6 +30,23 @@ h3 {
     background-color: aqua;
 
     .element {
-        background-color: chocolate;
+        background-color: rgb(207, 160, 127);
+        &.undone {
+            font-weight: bolder;
+        }
+        &.done {
+            background-color: rgb(160, 127, 207);
+        }
+        &.swapping {
+            font-style: italic;
+            font-weight: normal;
+        }
+
+    }
+}
+
+span {
+    &.inactive {
+        text-decoration: line-through;
     }
 }
