@@ -16,6 +16,23 @@ function shuffle<T>(array: T[]): T[] {
 }
 
 
+function create_initiatives(combatants: Combatant[]) {
+    const new_round: Initiative[] = []
+    combatants.forEach(combatant => {
+        if(combatant.actions < 1) {}
+        else if(combatant.actions > 1) {
+            for(let i = 0; i < combatant.actions; i++) {
+                new_round.push({name: `${combatant.name} (${i + 1})`, active: true})
+            }
+        }
+        else {
+            new_round.push({name: combatant.name, active: true})
+        }
+    })
+
+    return new_round;
+}
+
 export const InitiativeList = (props: { combatants: Combatant[], shift: boolean }) => {
     const initialDnDState: ListEditState = {
         from: 0,
@@ -35,7 +52,7 @@ export const InitiativeList = (props: { combatants: Combatant[], shift: boolean 
 
     const [dragAndDrop, setDragAndDrop] = React.useState(initialDnDState);
     const [swappingState, setSwappingState] = React.useState(initialSwapState)
-    const [list, setList] = React.useState(props.combatants.slice().map(n => {return {name: n.name, active: true}}));
+    const [list, setList] = React.useState(shuffle(create_initiatives(props.combatants)));
 
     const onDragStart = (event: React.DragEvent<Element>) => {
         if (!(event && event?.target instanceof HTMLElement)) return
@@ -169,19 +186,7 @@ export const InitiativeList = (props: { combatants: Combatant[], shift: boolean 
     }
 
     const initializeRound = (event: React.MouseEvent<HTMLButtonElement>) => {
-        const new_round: Initiative[] = []
-        props.combatants.forEach(combatant => {
-            if(combatant.actions < 1) {}
-            else if(combatant.actions > 1) {
-                for(let i = 0; i < combatant.actions; i++) {
-                    new_round.push({name: `${combatant.name} (${i + 1})`, active: true})
-                }
-            }
-            else {
-                new_round.push({name: combatant.name, active: true})
-            }
-        })
-        setList(shuffle(new_round));
+        setList(shuffle(create_initiatives(props.combatants)));
         setDragAndDrop({ ...dragAndDrop });
     }
     
