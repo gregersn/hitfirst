@@ -1,9 +1,17 @@
 import * as React from "react";
+import { useEffect } from "react";
 import { Combatant } from "./types"
+import { storageAvailable } from "./storage";
 
 export const Combatants = (props: { combatants: Combatant[] }) => {
 
     const [list, setList] = React.useState(props.combatants);
+    useEffect(() => {
+        console.log("The list was changed");
+        if(storageAvailable("localStorage")) {
+            localStorage.setItem("combatantList", JSON.stringify(list))
+        }
+    }, [list]);
 
     const addCombatantClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         console.log("Add a combatant")
