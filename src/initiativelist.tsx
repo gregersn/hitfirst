@@ -1,4 +1,5 @@
 import * as React from "react";
+import {Combatant, Initiative, ListEditState} from "./types"
 
 function shuffle<T>(array: T[]): T[] {
     array = array.slice();

@@ -1,14 +1,14 @@
-type Combatant = {
+export type Combatant = {
     name: string,
     actions: number
 }
 
-type Initiative = {
+export type Initiative = {
     name: string,
     active: boolean
 }
 
-type ListEditState = {
+export type ListEditState = {
     from: number,
     to: number,
     processing: boolean,

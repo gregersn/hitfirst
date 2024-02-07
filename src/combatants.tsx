@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Combatant } from "./types"
 
 export const Combatants = (props: { combatants: Combatant[] }) => {
 
