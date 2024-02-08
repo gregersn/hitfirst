@@ -102,6 +102,10 @@ type RoundEntry = {
   done: boolean;
 };
 
+function render_list_element() {
+
+}
+
 function render_list(
   listElement: HTMLOListElement,
   order: BattleEntry[] | RoundEntry[],
@@ -110,6 +114,7 @@ function render_list(
   listElement.hidden = false;
   const new_children = order.map((info, index: number) => {
     const el = document.createElement("li");
+    el.classList.add("element", "draggable", "list-group-item", "d-flex", "justify-content-between", "align-items-center");
     el.appendChild(entry_cb(info));
     el.setAttribute("data-index", index.toString());
     return el;
@@ -143,7 +148,7 @@ function render_battle_order(
   });
 }
 
-function initGame(websocket: WebSocket) {
+function initGame(battleview: HTMLDivElement, websocket: WebSocket) {
   websocket.addEventListener("open", () => {
     const params = new URLSearchParams(window.location.search);
     const event: InitMessage = { type: "init" };
@@ -154,6 +159,8 @@ function initGame(websocket: WebSocket) {
 
     if (params.has("secret")) {
       event.secret = params.get("secret");
+     (battleview.querySelector(".battle") as HTMLDivElement).hidden = false;
+
     }
 
     console.debug("Sending init", JSON.stringify(event));
@@ -213,7 +220,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const battleview = document.querySelector(".battleview") as HTMLDivElement;
   const websocket = new WebSocket("ws://localhost:8765/");
 
-  initGame(websocket);
+  initGame(battleview, websocket);
 
   recieveActions(battleview, websocket);
 

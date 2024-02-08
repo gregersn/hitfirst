@@ -1,33 +1,31 @@
 <!doctype html>
 <html lang="en">
 
-<head>
-    <meta charset="utf-8" />
-    <title>Hit first!</title>
-    <!-- <link rel="stylesheet" href="styles.scss" />--->
-    <link rel="stylesheet" href="styles.scss" />
-
-</head>
+  <head>
+      <meta charset="utf-8" />
+      <title>Hit first!</title>
+      <link rel="stylesheet" href="styles.scss" />
+  </head>
   <body>
     <div id="app"></div>
     <div class="error"></div>
-    <div class="battleview">
-      <div class="round">
-      <h3>Round</h3>
-      <ol class="roundorder" hidden="true">
-        <li>No contender</li>
-      </ol>
-      <button id="btnNewRound" class="btnNewRound">New round</button>
-    </div>
-      <div class="battle">
-      <h3>Battle</h3>
-      <ol class="battleorder" hidden="true">
-        <li>No contender</li>
-      </ol>
-      <input id="combatantInput" class="combatantInput" />
-      <input id="combatantActions" class="combatantActions" type="number" value="1" />
-      <button id="btnAddCombatant" class="btnAddCombatant">Add</button>
-    </div>
+    <div class="battleview" id="initiativeTracker">
+      <section class="round initiativeOrder">
+        <h3>Round</h3>
+        <ol class="roundorder big-list list-group" hidden="true">
+          <li>No contender</li>
+        </ol>
+        <button id="btnNewRound" class="btnNewRound">New round</button>
+      </section>
+      <section class="battle combatantsHandler" hidden="true">
+        <h3>Battle</h3>
+        <ol class="battleorder big-list list-group">
+          <li>No contender</li>
+        </ol>
+        <input id="combatantInput" class="combatantInput" />
+        <input id="combatantActions" class="combatantActions" type="number" value="1" />
+        <button id="btnAddCombatant" class="btnAddCombatant">Add</button>
+      </section>
     </div>
     <div class="actions">
       <a class="action player" href="">Player link</a><br />
