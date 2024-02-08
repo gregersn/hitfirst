@@ -4,7 +4,8 @@
   "browserslist": "> 0.5%, last  2 versions, not dead",
   "scripts": {
     "start": "parcel serve",
-    "build": "parcel build"
+    "build": "parcel build",
+    "dist": "parcel build --public-url /tools/hitfirst/"
   },
   "devDependencies": {
     "@parcel/transformer-sass": "^2.11.0",
